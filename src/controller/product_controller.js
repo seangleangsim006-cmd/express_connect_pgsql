@@ -112,3 +112,27 @@ export async function updateProduct(req,res){
         })
     }
 }
+
+export async function deleteProduct(req, res){
+    const {id} =  req.params;
+    const results = await pool.query(
+        `
+        DELETE FROM products 
+        WHERE id = $1
+        RETURNING *
+        `,
+        [id]
+
+    );
+    if(results.rows.length===0){
+        res.status(404).json({
+            success: false,
+            message: "Product not found"
+        });
+    }
+    res.status(200).json({
+        success: true,
+        message: "Delete product successfully",
+        data: results.rows[0]
+    })
+} 
