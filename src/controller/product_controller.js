@@ -77,7 +77,8 @@ export async function createProduct(req,res){
 }
 export async function updateProduct(req,res){
     try{
-        const {id,name,price,description,stock} = req.body;
+        const {id} = req.params;
+        const {name,price,description,stock} = req.body;
         if(!name || price===undefined || price===null){
             return res.status(400).json({
                 success: false,
@@ -85,16 +86,23 @@ export async function updateProduct(req,res){
             })
         }
         const results = await pool.query(
-            `   INSERT INTO products(name,description,price,stock)
-                VALUES ($1,$2,$3,$4)
+            `   UPDATE products SET name=$1,description=$2,price=$3,stock=$4
+                WHERE id = $5
                 RETURNING *
             `,
-            [name,description,price,stock]
+            [name,description,price,stock,id]
         )
+        if(results.rows.length===0){
+            res.status(404).json({
+                success: false,
+                message: "Product not found",
+                data: results.rows[0]
+            })
+        }
         res.status(200).json({
             success: true,
-            message: "Product created Successfully",
-            data: results.rows
+            message: "Product update Successfully",
+            data: results.rows[0]
         })
     }catch(error){
         console.log(error);
